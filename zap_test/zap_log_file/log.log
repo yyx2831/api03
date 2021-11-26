@@ -1,0 +1,2 @@
+{"level":"info","ts":1637891163.840317,"caller":"zap_log_file/main.go:24","msg":"info"}
+{"level":"error","ts":1637891163.8408487,"caller":"zap_log_file/main.go:25","msg":"error","stacktrace":"main.main\n\tD:/go/src/api03/zap_test/zap_log_file/main.go:25\nruntime.main\n\tC:/Program Files/Go/src/runtime/proc.go:255"}
