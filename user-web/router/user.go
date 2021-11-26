@@ -1,7 +1,7 @@
 package router
 
 import (
-	"api03/api"
+	"api03/user-web/api"
 	"github.com/gin-gonic/gin"
 )
 
