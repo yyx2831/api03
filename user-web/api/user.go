@@ -53,10 +53,13 @@ func GetUserList(c *gin.Context) {
 		zap.L().Error("[GetUserList]连接【用户服务失败】", zap.Error(err))
 	}
 	//生成grpc的client并调用接口
+	//获取前端get请求
+	page := c.Query("page")
+	pageSize := c.Query("pageSize")
 	userSrvClient := proto.NewUserClient(userConn)
 	rsp, err := userSrvClient.GetUserList(context.Background(), &proto.PageInfo{
-		Pn:    1,
-		PSize: 10,
+		Pn:    page,
+		PSize: pageSize,
 	})
 	if err != nil {
 		zap.L().Error("[GetUserList]查询【用户列表】失败", zap.Error(err))
