@@ -1,17 +1,29 @@
 package api
 
 import (
+	"api03/user-web/forms"
 	"api03/user-web/global/reponse"
 	"api03/user-web/proto"
 	"context"
 	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator/v10"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"net/http"
+	"strconv"
+	"strings"
 	"time"
 )
+
+func removeTopStruct(fileds map[string]string) map[string]string {
+	rsp := map[string]string{}
+	for field, err := range fileds {
+		rsp[field[strings.Index(field, ".")+1:]] = err
+	}
+	return rsp
+}
 
 func HandlerGrpcErrorToHttp(err error, c *gin.Context) {
 	//将grpc错误码转换为http错误码
@@ -54,12 +66,15 @@ func GetUserList(c *gin.Context) {
 	}
 	//生成grpc的client并调用接口
 	//获取前端get请求
+	//page := c.DefaultQuery("pn","0")
 	page := c.Query("page")
 	pageSize := c.Query("pageSize")
+	pageInt, err := strconv.Atoi(page)
+	pageSizeInt, err := strconv.Atoi(pageSize)
 	userSrvClient := proto.NewUserClient(userConn)
 	rsp, err := userSrvClient.GetUserList(context.Background(), &proto.PageInfo{
-		Pn:    page,
-		PSize: pageSize,
+		Pn:    uint32(pageInt),
+		PSize: uint32(pageSizeInt),
 	})
 	if err != nil {
 		zap.L().Error("[GetUserList]查询【用户列表】失败", zap.Error(err))
@@ -76,20 +91,23 @@ func GetUserList(c *gin.Context) {
 			Birthday: reponse.JsonTime(time.Time(time.Unix(int64(v.BirthDay), 0))),
 		}
 		result = append(result, user)
-		//result = append(result, gin.H{
-		//	"id": v.Id,
-		//	"name": v.NickName,
-		//	"birthDay": v.BirthDay,
-		//	"gender":v.Gender,
-		//	"mobile":v.Mobile,
-		//})
-		//data := make(map[string]interface{})
-		//data["id"] = v.Id
-		//data["name"] = v.NickName
-		//data["birthDay"] = v.BirthDay
-		//data["gender"] = v.Gender
-		//data["mobile"] = v.Mobile
-
 	}
 	c.JSON(http.StatusOK, result)
+}
+
+func PassWordLogin(c *gin.Context) {
+	//表单验证
+	PassWordLoginForm := forms.PassWordLoginForm{}
+	err := c.ShouldBind(&PassWordLoginForm)
+	if err != nil {
+		errs, ok := err.(validator.ValidationErrors)
+		if !ok {
+			c.JSON(http.StatusOK, gin.H{
+				"msg": err.Error(),
+			})
+		}
+		c.JSON(http.StatusBadRequest, gin.H{
+			"msg": removeTopStruct(errs.Translate(validate)),
+		})
+	}
 }

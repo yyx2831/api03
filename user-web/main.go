@@ -11,9 +11,12 @@ func main() {
 
 	//1.初始化Logger
 	initialize.InitLogger()
-	//2.初始化router
+	//2.初始化配置文件
+	initialize.InitConfig()
+	//3.初始化router
 	Router := initialize.Routers()
-
+	//4.初始化翻译
+	initialize.InitTrans("zh")
 	/*
 		    1.S()可以获取一个全局sugar,可以让我们直接设置一个全局的logger
 			2.日志级别,debug,info,warn,error,dpanic,panic,fatal
